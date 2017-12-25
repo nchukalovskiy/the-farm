@@ -1,0 +1,154 @@
+    <!doctype>
+    <html>
+
+    <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript" src="./dist/web3.js"></script>
+    <script type="text/javascript">
+        var Web3 = require('web3');
+        var web3 = new Web3();
+        web3.setProvider(new web3.providers.HttpProvider("http://localhost:8545"));
+
+        web3.eth.defaultAccount = web3.eth.accounts[0];
+
+        //And then you can either initiate an existing contract on an address, or deploy the contract using the compiled byte code.//
+
+        //https://github.com/ethereum/wiki/wiki/JavaScript-API//
+
+        //WEB3DEPLOY
+        var market = web3.eth.contract([{"constant":false,"inputs":[{"name":"_product_id","type":"uint256"},{"name":"_quantity","type":"uint256"}],"name":"deal","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[{"name":"_id","type":"uint256"},{"name":"_rate","type":"uint256"}],"name":"rate","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_product_id","type":"uint256"}],"name":"getRate","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"totalPurchases","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_price","type":"uint256"},{"name":"_name","type":"string"},{"name":"_quantity","type":"uint256"},{"name":"_product_id","type":"uint256"},{"name":"_farmer","type":"address"},{"name":"_additionalInfo","type":"string"}],"name":"addProduct","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"products","outputs":[{"name":"_price","type":"uint256"},{"name":"_name","type":"string"},{"name":"_quantity","type":"uint256"},{"name":"_farmer","type":"address"},{"name":"_additionalInfo","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"purchases","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"totalProducts","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"_products","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_product_id","type":"uint256"}],"name":"getProduct","outputs":[{"name":"","type":"uint256"},{"name":"","type":"string"},{"name":"","type":"uint256"},{"name":"","type":"address"},{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"_purchases","outputs":[{"name":"deal_id","type":"uint256"},{"name":"product_id","type":"uint256"},{"name":"quantity","type":"uint256"},{"name":"buyer","type":"address"},{"name":"delivered","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"name":"farmer","type":"address"},{"indexed":false,"name":"product_id","type":"uint256"}],"name":"Purchased","type":"event"}]).at("0x753927011aed2e5ad335ae1e2613fac6375610fe");
+
+        function add() {
+            var _price = parseInt(document.getElementById('price').value);
+            var _name = document.getElementById('name').value;
+            var _quantity = parseInt(document.getElementById('quantity1').value);
+            var _product_id = parseInt(document.getElementById('product_id1').value);
+            var _farmer = document.getElementById('farmer').value;
+            var _additionalInfo = document.getElementById('additionalInfo').value;
+
+            //marketInit.addProduct(_price, _quantity, _product_id, _farmer);
+
+            market.addProduct(_price, _name, _quantity, _product_id, _farmer, _additionalInfo, {from: web3.eth.accounts[0], gas: 999999});
+
+            //displayProduct("Price:    " + _price + "Name:   " + _name + "Quantity:   " + _quantity + "ID:   " + _product_id + "Farmer address:   " + _farmer + "Info:   " + _additionalInfo);
+
+        }
+
+        
+        function List(){
+
+            var length = market.totalProducts();
+            for (i = 0; i < length; i++) {
+            	var id = market._products(i); // get ID
+            	var product = market.getProduct(id);
+            	var tr = $('<tr>');
+            	
+            	var a = $('<a>').attr('href','#').text(product[1]);
+            	/*for (j = 0; j < length; j++) {
+            		if (i==j) {
+            			a.click(function(){
+            			$('#dealProductId').val(id);
+            			});
+            			break;
+            		}
+            	}*/
+            	/*a.click(function(){
+            			$('#dealProductId').index(this);
+            		});
+            		*/
+
+            	//$('<td>').append(a).appendTo(tr);
+
+            	$('<td>').text(id).appendTo(tr);
+            	$('<td>').text(product[1]).appendTo(tr);
+            	$('<td>').text(product[0]).appendTo(tr);
+            	$('<td>').text(product[2]).appendTo(tr);
+            	$('<td>').text(product[4]).appendTo(tr);
+
+            	var rate = market.getRate(i);
+
+            	$('<td>').text(rate).appendTo(tr);
+            	//$('#products').append(tr);
+            	tr.appendTo($('#products'));
+            }
+
+        }
+
+        function buy() {
+	            var _product_id = parseInt(document.getElementById("dealProductId").value);
+	            var _quantity = parseInt(document.getElementById('dealProductQuantity').value);
+	            var _price = market.getProduct(_product_id)[0]['c'][0];
+	            var _value = _quantity*_price;
+
+
+	            
+	            market.deal(_product_id, _quantity, {value:_value, from: web3.eth.accounts[1], to: market.address, gas: "1000000"});
+
+	            document.getElementById("ordered").innerHTML = "Заказ принят!";
+
+        }
+
+
+    
+       function rate() {
+            var _id = parseInt(document.getElementById('rateProductId').value)-1;
+            var _rate = parseInt(document.getElementById('productRate').value);
+            
+            market.rate(_id, _rate, {gas: "1000000"});
+
+	        document.getElementById("rated").innerHTML = "Оценка записана в блокчейн ;)";
+
+        }
+    
+
+        
+
+    </script>
+</head>
+<body>
+
+<h1>The Farm</h1>
+
+<h2>Добавить товар</h2>
+<div>
+    <p><text>Название</text></p>
+    <p><input type="text" id="name"></input></p>
+    <p><text>Цена</text></p>
+    <p><input type="text" id="price"></input></p>
+    <p><text>Количество</text></p>
+    <p><input type="text" id="quantity1"></input></p>
+    <p><text>ID</text></p>
+    <p><input type="text" id="product_id1"></input></p>
+    <p><text>Фермер</text></p>
+    <p><input type="text" id="farmer"></input></p>
+    <p><text>Дополнительная информация</text></p>
+    <p><input type="text" id="additionalInfo"></input></p>
+</div>
+<div class="btn-group">
+    <button id="registerButton" type="button" onClick="add()">Добавить</button>
+    <button id="dbButton" type="button" onClick="List()">Список</button>
+</div>
+
+<h2>Список товаров</h2>
+<table id="products" border="1" cellpadding="5" cellspacing="0">
+ <tr><td>ID</td><td>Название</td><td>Цена</td><td>Количество</td><td>Доп. инфо</td><td>Оценка</td></tr>
+</table>
+<p><br/><p>
+<h2>Сделать заказ</h2>
+<div>
+ ID <input type="text" id="dealProductId">Количество <input type="text" id="dealProductQuantity"> <button id="dealBtn" type="button" onClick="buy()">Заказать</button>
+ <p id="ordered"><h4></h4></p>
+</div>
+<p><br/><p>
+<h2>Оценить товар</h2>
+<div>
+ ID <input type="text" id="rateProductId">Оценка <input type="text" id="productRate"> <button id="rateBtn" type="button" onClick="rate()">Оценить</button>
+ <p id="rated"><h4></h4></p>
+</div>
+<p><br/><p>
+<div>
+    <button id="dbButton2" type="button" onClick="List()">Обновить список</button>
+</div>
+</div>
+ 
+</body>
