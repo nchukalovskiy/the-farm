@@ -1,5 +1,5 @@
 # theFarm
-Farmer supply chain tracking on the blockchain.
+Farmer supply chain tracking on the Ethereum blockchain.
 
 ## Launch
 1. Command line: testrpc
